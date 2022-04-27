@@ -1,0 +1,44 @@
+const fs = require('fs')
+const path = require('path')
+
+function treefn(dirpath){
+
+    if(dirpath == undefined){
+        console.log("Please enter a directory name")
+        return;
+    }
+    else{
+
+        let doesExist = fs.existsSync(dirpath);
+        //console.log(doesExist)                                             
+        if(doesExist == true){
+            treeViewHelper(dirpath, " ")
+        }
+    }   
+
+}
+
+function treeViewHelper(dirpath , indent){
+    let isfile = fs.lstatSync(dirpath).isFile()
+
+    if(isfile == true){
+        let filename = path.basename(dirpath)
+        console.log(indent + "├──" + filename)
+    }else{
+        let dirname = path.basename(dirpath)
+        console.log(indent + "└──" + dirname)
+
+        let children = fs.readdirSync(dirpath)
+
+        for(let i = 0 ; i < children.length ; i++){
+            let childpath = path.join(dirpath , children[i])
+            treeViewHelper(childpath , indent + "\t")
+
+        }
+    }    
+}
+
+
+module.exports = {
+    onjecttreekey : treefn
+}
