@@ -1,0 +1,14 @@
+function helpfn(){
+    console.log(`
+    List of all the commands ---->>>
+                                    Tree command --->>> node fileOrgenizer.js tree <dirName>
+                                    Orgenize command --->>> node fileOrgenizer.js orgenize <dirName>
+                                    Help command --->>> node fileOrgenizer.js help <dirName>
+                    `);
+}
+
+module.exports = {
+
+    objectkey : helpfn
+
+}
