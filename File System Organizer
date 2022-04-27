@@ -1,0 +1,202 @@
+//File Syestem Orgenizer
+
+
+//1. First Activity with Node.js
+
+// We will be creating a File System Organizer//
+//Features of the Project -
+//If you have numerous Files in a folder and they are not Properly arranged
+//So you can use this tool to arrange them in specific directory according to their extension
+// like text files will go into text File Folder .exe files will go into application folder and so on
+// so at the end you will have a arranged set of files in specific folders
+
+// we will be using built in node modules like fs and path to  create this project
+// array ke from mein input jaata hai command line pein
+
+//let input = process.argv[2]
+//console.log(input)
+// node js treats command line inputs as array and that array is your process array
+
+
+
+const fs = require('fs')
+const path = require('path')
+
+let input = process.argv.slice(2)
+//console.log(input)
+
+let command = input[0]
+//let dirpath = input[1]
+
+
+let types = {
+    media: ["mp4", "mk", "mp3","jpeg"],
+    archives: ["zip", "7z", "rar", "tar", "gz", "ar", "iso", "xz"],
+    documents: [
+      "docx",
+      "doc",
+      "pdf",
+      "xlsx",
+      "xls",
+      "odt",
+      "ods",
+      "odp",
+      "odg",
+      "odf",
+      "txt",
+      "ps",
+      "tex",
+    ],
+    app: ["exe", "dmg", "pkg", "deb"],
+  };
+  
+
+
+switch(command){
+    case 'orgenize':
+        orgenizefn(input[1])
+        break
+
+    case 'tree' :
+        treefn(input[1])
+        break
+
+    case 'help' :
+        helpfn()
+        break
+
+    default :
+        console.log("Please enter a Valid Command")
+        break
+}
+
+
+function orgenizefn(dirpath){
+
+    let destpath
+    
+    if(dirpath == undefined){
+        console.log("Please enter a directory name")
+        return;
+    }
+    else{
+
+        let doesExist = fs.existsSync(dirpath);
+        //console.log(doesExist)
+        if(doesExist == true){
+            destpath = path.join(dirpath,'orgenized_files')
+            if(fs.existsSync(destpath) == false){
+                fs.mkdirSync(destpath)
+            }else{
+                console.log("The file is already exists")
+            }
+        }else{
+            console.log("Please enter a valid path")
+        }
+    }
+    
+    orgenizeHelper(dirpath , destpath)
+}
+
+
+
+function orgenizeHelper(src , dest){
+    let child_Name = fs.readdirSync(src)
+    //console.log(child_Name)
+
+    for(let i = 0 ; i < child_Name.length ; i++){
+        let child_address = path.join(src , child_Name[i])
+
+        let isfile = fs.lstatSync(child_address).isFile()
+        if(isfile == true){
+            let filecategory = GetCategory(child_Name[i]);
+            sendfiles(child_address , dest , filecategory)
+            //console.log(child_Name[i] + " <<--- belongs to --->>" + filecategory)
+        }
+    }
+
+}
+
+function GetCategory(Name){
+    let ext = path.extname(Name)
+    //console.log(ext)
+
+    ext = ext.slice(1)                 //for ignoring . before extentions
+    //console.log(ext)
+
+    for(let type in types){
+        let typeCategory = types[type]
+        //console.log(typeCategory)
+
+        for(let i = 0 ; i < typeCategory.length ; i++){
+            if(typeCategory[i] == ext){
+                return type;
+            }
+        }
+    }
+
+    return 'others'
+
+}
+
+function sendfiles(srcFilepath , dest , filecategory){
+
+    let catPath = path.join(dest , filecategory)
+
+    if(fs.existsSync(catPath) == false){
+        fs.mkdirSync(catPath)
+    }
+
+    let fileName  = path.basename(srcFilepath)
+    let destFilePath = path.join(catPath , fileName)
+    fs.copyFileSync(srcFilepath , destFilePath)
+    fs.unlinkSync(srcFilepath)
+
+}
+
+
+function treefn(dirpath){
+
+    if(dirpath == undefined){
+        console.log("Please enter a directory name")
+        return;
+    }
+    else{
+
+        let doesExist = fs.existsSync(dirpath);
+        //console.log(doesExist)                                             
+        if(doesExist == true){
+            treeViewHelper(dirpath, " ")
+        }
+    }   
+
+}
+
+function treeViewHelper(dirpath , indent){
+    let isfile = fs.lstatSync(dirpath).isFile()
+
+    if(isfile == true){
+        let filename = path.basename(dirpath)
+        console.log(indent + "├──" + filename)
+    }else{
+        let dirname = path.basename(dirpath)
+        console.log(indent + "└──" + dirname)
+
+        let children = fs.readdirSync(dirpath)
+
+        for(let i = 0 ; i < children.length ; i++){
+            let childpath = path.join(dirpath , children[i])
+            treeViewHelper(childpath , indent + "\t")
+
+        }
+    }    
+}
+
+function helpfn(){
+    console.log(`
+    List of all the commands ---->>>
+                                    Tree command --->>> node fileOrgenizer.js tree <dirName>
+                                    Orgenize command --->>> node fileOrgenizer.js orgenize <dirName>
+                                    Help command --->>> node fileOrgenizer.js help <dirName>
+                    `);
+}
