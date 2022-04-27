@@ -1,0 +1,89 @@
+const fs = require('fs')
+const path = require('path')
+
+function orgenizefn(dirpath){
+
+    let destpath
+    
+    if(dirpath == undefined){
+        console.log("Please enter a directory name")
+        return;
+    }
+    else{
+
+        let doesExist = fs.existsSync(dirpath);
+        //console.log(doesExist)
+        if(doesExist == true){
+            destpath = path.join(dirpath,'orgenized_files')
+            if(fs.existsSync(destpath) == false){
+                fs.mkdirSync(destpath)
+            }else{
+                console.log("The file is already exists")
+            }
+        }else{
+            console.log("Please enter a valid path")
+        }
+    }
+    
+    orgenizeHelper(dirpath , destpath)
+}
+
+
+
+function orgenizeHelper(src , dest){
+    let child_Name = fs.readdirSync(src)
+    //console.log(child_Name)
+
+    for(let i = 0 ; i < child_Name.length ; i++){
+        let child_address = path.join(src , child_Name[i])
+
+        let isfile = fs.lstatSync(child_address).isFile()
+        if(isfile == true){
+            let filecategory = GetCategory(child_Name[i]);
+            sendfiles(child_address , dest , filecategory)
+            //console.log(child_Name[i] + " <<--- belongs to --->>" + filecategory)
+        }
+    }
+
+}
+
+function GetCategory(Name){
+    let ext = path.extname(Name)
+    //console.log(ext)
+
+    ext = ext.slice(1)                 //for ignoring . before extentions
+    //console.log(ext)
+
+    for(let type in types){
+        let typeCategory = types[type]
+        //console.log(typeCategory)
+
+        for(let i = 0 ; i < typeCategory.length ; i++){
+            if(typeCategory[i] == ext){
+                return type;
+            }
+        }
+    }
+
+    return 'others'
+
+}
+
+function sendfiles(srcFilepath , dest , filecategory){
+
+    let catPath = path.join(dest , filecategory)
+
+    if(fs.existsSync(catPath) == false){
+        fs.mkdirSync(catPath)
+    }
+
+    let fileName  = path.basename(srcFilepath)
+    let destFilePath = path.join(catPath , fileName)
+    fs.copyFileSync(srcFilepath , destFilePath)
+    fs.unlinkSync(srcFilepath)
+
+}
+
+module.exports = {
+    objectorgkey : orgenizefn
+}
